@@ -24,7 +24,56 @@ public class Robo {
                 int temp =  Integer.MIN_VALUE;
                 if(b.canPlay(k+c)) {
                     b.play(k+c);
-                    temp = minimax(b,depth,false, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    temp = minimax(b, depth,false, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    b.takeBack();
+                }
+                k = k +c;
+                System.out.println(k+ ": " +temp);
+                if(temp > max) {
+                    max = temp;
+                    move = k;
+                }
+            }
+            return move;
+        }else{
+            int k = b.getWidth()/2;
+            int min = Integer.MAX_VALUE;
+            for(int i = 0; i < b.getWidth(); i++){
+                int temp = Integer.MAX_VALUE;
+                int c = i;
+                if (i %2 == 0){
+                    c = -1*i;
+                }
+                if(b.canPlay(k+c)) {
+                    b.play(k+c);
+                    temp = minimax(b, depth, true, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    b.takeBack();
+                }
+                k = k+c;
+                System.out.println(k+ ": " +temp);
+                if(temp < min) {
+                    min = temp;
+                    move = k;
+                }
+            }
+            return move;
+        }
+    }
+    public int play(int depth, Board b){
+        int move = -1;
+        boolean playerOne = b.isTurn();
+        if(playerOne){
+            int k = b.getWidth()/2;
+            int max = Integer.MIN_VALUE;
+            for(int i = 0; i < b.getWidth(); i++) {
+                int c = i;
+                if (i %2 == 0){
+                    c = -1*i;
+                }
+                int temp =  Integer.MIN_VALUE;
+                if(b.canPlay(k+c)) {
+                    b.play(k+c);
+                    temp = minimax(b, depth,false, Integer.MIN_VALUE, Integer.MAX_VALUE);
                     b.takeBack();
                 }
                 k = k +c;
@@ -160,6 +209,64 @@ public class Robo {
 
 
     public int minimax(Bitboard b, int depth, boolean playerOne, int alpha, int beta){
+        if(depth == 0 || b.isWon()){
+            return eval(b);
+        }
+        if(playerOne){
+            int max = Integer.MIN_VALUE;
+            int k = b.getWidth()/2;
+            for(int i = 0; i < b.getWidth(); i++) {
+                int temp = Integer.MIN_VALUE;
+                int c = i;
+                if (i %2 == 0){
+                    c = -1*i;
+                }
+                if(b.canPlay(k+c)) {
+                    b.play(k+c);
+                    temp = minimax(b, depth - 1, false, alpha, beta);
+                    b.takeBack();
+                    if(temp >= beta) {
+                        max = temp;
+                        break;
+                    }
+                }
+                k = k+c;
+                if(temp > max) {
+                    //Fatal mistake, I was missing min = temp because otherwise max = integer.minvalue which sends the message of forced win for the other player
+                    max = temp;
+                    alpha = max;
+                }
+            }
+            return max;
+        }else{
+            int min = Integer.MAX_VALUE;
+            int k = b.getWidth()/2;
+            for(int i = 0; i < b.getWidth(); i++){
+                int temp = Integer.MAX_VALUE;
+                int c = i;
+                if (i %2 == 0){
+                    c = -1*i;
+                }
+                if(b.canPlay(k+c)) {
+                    b.play(k+c);
+                    temp = minimax(b, depth - 1, true, alpha, beta);
+                    b.takeBack();
+                    if(temp <= alpha) {
+                        //Fatal mistake, I was missing min = temp because otherwise min = integer.maxvalue which sends the message of forced win for the other player
+                        min = temp;
+                        break;
+                    }
+                }
+                k = k+c;
+                if(temp < min) {
+                    min = temp;
+                    beta = min;
+                }
+            }
+            return min;
+        }
+    }
+    public int minimax(Board b, int depth, boolean playerOne, int alpha, int beta){
         if(depth == 0 || b.isWon()){
             return eval(b);
         }
@@ -369,80 +476,25 @@ public class Robo {
     }
 
     public static void main(String[] args){
-        //PROBLEM WITH DIAGONALS (CODE IS TOO HARD TO READ,, THINK OF ANOTHER WAY TO CHECK FOR DIAGONALS.
         Board b = new Board();
         Bitboard bitB = new Bitboard();
         Robo robot = new Robo(b);
         Scanner s = new Scanner(System.in);
         System.out.println(b);
         while(!bitB.isWon()){
-            int k = s.nextInt();
-            bitB.play(k- 1);
+            int k = robot.play(8, b);
+            bitB.play(k);
+            b.play(k);
             System.out.println(bitB.fancyBoard());
             int c = robot.play(9, bitB);
-            bitB.play(c);
             System.out.println((c+1) + " " +bitB.isWon());
+            bitB.play(c);
+            b.play(c);
+
             System.out.println(bitB.fancyBoard());
             if(c == -1 || k == -1)
                 break;
         }
         System.out.println(b.getTurn());
-
-        //RESOLVED Update 4/20/2023-- the bot doesnt detect this win
-        /*
-        0 0 1 0 0 0 0
-        0 0 2 0 2 0 0
-        0 0 2 0 1 0 0
-        0 0 2 1 2 2 0
-        0 0 1 2 1 1 0
-        0 1 2 2 1 1 0
-        diagonal starting from lane 2
-        RESOLVED IT WAS BECAUSE I WASN'T CHECKING BOTH WAYS DIAGONALLY.
-        Game played at depth 7
-
-        2 2 0 2 1 0 2
-        1 1 0 2 1 0 1
-        2 2 0 1 2 2 2
-        1 1 0 2 1 1 2
-        1 2 0 1 1 2 1
-        2 1 0 1 2 1 2
-        Game played with hashset (1) vs no (2)
-
-1 2 2 0 2 1 1
-2 2 1 0 1 1 2
-1 1 1 0 2 2 1
-2 2 2 0 2 1 2
-1 1 2 0 1 1 2
-1 2 2 1 1 1 2
-
-vs No
-1 2 2 0 2 1 1
-2 2 1 0 1 1 2
-1 1 1 0 2 2 1
-2 2 2 0 2 1 2
-1 1 2 0 1 1 2
-1 2 2 1 1 1 2
-
-
-ERROR thinks that this is won??
-0 0 1 0 0 0 0
-2 0 2 1 0 0 0
-1 0 2 2 2 0 0
-2 0 2 2 1 2 1
-2 0 1 1 2 1 1
-2 0 1 2 1 1 1
-//error was otherdiagonal was recursing with diagonal
-
-ERROR
-NOT WON
-0 0 0 2 0 0 0
-0 0 0 2 2 0 0
-0 0 0 2 1 0 0
-0 0 0 1 2 0 0
-0 0 1 2 1 0 0
-0 1 1 2 1 0 0
-
-
-         */
     }
 }

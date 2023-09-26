@@ -65,7 +65,7 @@ public class Bitboard {
     }
 
     public boolean canPlay(int c){
-        return c > 0 && c < heights.length && !won && (heights[c]+1) < h;
+        return c >= 0 && c < heights.length && !won && (heights[c]+1) < h;
     }
 
     public int getWidth(){

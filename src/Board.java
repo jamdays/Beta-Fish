@@ -147,6 +147,10 @@ public class Board{
     public int getTurn() {
         return turn + 1;
     }
+
+    public boolean isTurn(){
+        return turn % 2 == 0;
+    }
     public Iterable<Board> getChildren(){
         ArrayList<Board> children = new ArrayList<Board>();
         for(int i = 0; i < heights.length; i++){
