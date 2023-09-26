@@ -312,6 +312,43 @@ public class Robo {
         //System.out.println(evaluation + ":board eval");
         return evaluation;
     }
+
+    public int eval(Bitboard b){
+        int evaluation =0;
+        if(b.isWon()) {
+            //turn changes before it is won
+            if (!b.isTurn())
+                return Integer.MAX_VALUE;
+            else
+                return Integer.MIN_VALUE;
+        }
+        else{
+            for (int r = 0; r < b.getWidth()-1; r++){
+                int y = r - (b.getWidth()-1)/2;
+                for(int c = 0; c < b.getWidth(); c++){
+                    int i = 1;
+                    // if the int is less when & with the bit then there is a bit at that spot.
+                    int x = c - b.getWidth()/2;
+                    int[] board = b.getpOneboards();
+                    int temp = board[r];
+                    if((temp ^ i) < board[r]){
+                        evaluation += 100/(x*x+y*y+2);
+                    } else {
+                        board = b.getpTwoboards();
+                        temp = board[r];
+                        if ((temp ^ i) < board[r]) {
+                            evaluation -= 100 / (x * x + y * y + 2);
+                        }
+                    }
+
+                    i *=2;
+                }
+
+            }
+        }
+        return evaluation;
+
+    }
     private int searchHorizontally(int row, int col, int count, int turn, int dx, int[][] board){
         if(col < 0 || col >= board[0].length || board[row][col] != turn+1){
             return count;
@@ -332,18 +369,20 @@ public class Robo {
     }
 
     public static void main(String[] args){
+        //PROBLEM WITH DIAGONALS (CODE IS TOO HARD TO READ,, THINK OF ANOTHER WAY TO CHECK FOR DIAGONALS.
         Board b = new Board();
+        Bitboard bitB = new Bitboard();
         Robo robot = new Robo(b);
         Scanner s = new Scanner(System.in);
         System.out.println(b);
-        while(!b.isWon()){
+        while(!bitB.isWon()){
             int k = s.nextInt();
-            b.play(k- 1);
-            System.out.println(b.fancyBoard());
-            int c = robot.play(9);
-            b.play(c);
-            System.out.println(b.isWon());
-            System.out.println(b.fancyBoard());
+            bitB.play(k- 1);
+            System.out.println(bitB.fancyBoard());
+            int c = robot.play(9, bitB);
+            bitB.play(c);
+            System.out.println((c+1) + " " +bitB.isWon());
+            System.out.println(bitB.fancyBoard());
             if(c == -1 || k == -1)
                 break;
         }
@@ -393,6 +432,16 @@ ERROR thinks that this is won??
 2 0 1 1 2 1 1
 2 0 1 2 1 1 1
 //error was otherdiagonal was recursing with diagonal
+
+ERROR
+NOT WON
+0 0 0 2 0 0 0
+0 0 0 2 2 0 0
+0 0 0 2 1 0 0
+0 0 0 1 2 0 0
+0 0 1 2 1 0 0
+0 1 1 2 1 0 0
+
 
          */
     }
