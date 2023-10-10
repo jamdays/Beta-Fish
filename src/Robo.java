@@ -482,11 +482,11 @@ public class Robo {
         Scanner s = new Scanner(System.in);
         System.out.println(b);
         while(!bitB.isWon()){
-            int k = robot.play(8, b);
+            int k = s.nextInt();
             bitB.play(k);
             b.play(k);
             System.out.println(bitB.fancyBoard());
-            int c = robot.play(9, bitB);
+            int c = robot.play(10, bitB);
             System.out.println((c+1) + " " +bitB.isWon());
             bitB.play(c);
             b.play(c);
